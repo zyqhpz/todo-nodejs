@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
   const Todo = sequelize.define(
-    "todo",
+    'Todo',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -20,18 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false
       }
-    },
-    {
-      timestamps: false
-    }
-  );
-
-  Todo.associate = models => {
-    Todo.belongsTo(models.User, {
-      foreignKey: "userId",
-      onDelete: "CASCADE"
-    });
-  };
+    })
 
   return Todo;
-};
+}

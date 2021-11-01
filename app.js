@@ -7,20 +7,16 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
-var Models = require('./models');
 
 var app = express();
 
+var Models = require('./models');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // Start the server and db connection
-Models.sequelize.sync().then(function() {
-  console.log('Nice! Database looks fine')
-}).catch(function(err) {
-  console.log(err, "Something went wrong with the Database Update!")
-});
+Models.sequelize.sync()
 
 app.use(logger('dev'));
 app.use(express.json());
