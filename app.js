@@ -11,6 +11,13 @@ var todoRouter = require('./routes/todo');
 var app = express();
 
 var Models = require('./models');
+
+const axios = require('axios').default;
+
+//vue
+var vue = require('vue');
+var vueServerRenderer = require('vue-server-renderer');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
