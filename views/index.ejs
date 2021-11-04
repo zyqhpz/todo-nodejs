@@ -77,11 +77,8 @@
           <p class="font-sans font-normal text-base text-white p-4 mx-4 bg-indigo-900 rounded-md shadow-sm text-left">
             {{ todo.description }}
           </p>
-          <div class="flex justify-end my-2 gap-2">
-            <button class="bg-yellow-500 hover:bg-yellow-700 w-10 h-auto text-white font-bold rounded-md" @click="updateStatus(todo, todo.id)">
-              <i class="material-icons py-2">check</i>
-            </button>            
-            <button class="bg-green-500 hover:bg-green-700 w-10 h-auto text-white font-bold rounded-md" @click="editTodo(todo, todo.id); showModal = true;">
+          <div class="flex justify-end my-2 gap-2">         
+            <button class="bg-green-500 hover:bg-green-700 w-10 h-auto text-white font-bold rounded-md" @click="showModal = true; editTodo(todo, todo.id)">
               <i class="material-icons py-2">edit</i>
             </button>            
             <button class="bg-red-500 hover:bg-red-700 w-10 h-auto text-white font-bold rounded-md" @click="deleteTodo(todo, todo.id)">
@@ -107,164 +104,144 @@
       <h3 slot="header" class="mx-auto font-bold text-2xl" v-else>Edit Task</h3>
       <!-- Input new todo -->
       <div slot="body" class="input">
-        <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="title" id="task" placeholder="What are you working on?">
-        <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="description" id="note" placeholder="Add note">
+        <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="title" placeholder="What are you working on?">
+        <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="description" placeholder="Add note">
       </div>
       <!-- modal footer -->
       <div slot="footer" class="flex flex-row-reverse gap-2">
         <!-- Show when in add new task mode -->
         <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-if="!editModal" @click="addTodo">Save</button>
         <!-- Show when in edit task mode -->
-        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-else @click="updateTodo(todo, todo.id)">Update</button>
+        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" id="update" v-else>Update</button>
         <button class="bg-white bg-opacity-20 border-2 hover:border-red-500 border-gray-200 py-2 px-4 text-gray-400 hover:text-red-500 font-bold w-20" @click="showModal = false">Cancel</button>
       </div>
     </modal>
   </div>
   <script>
-    //let axios = require('axios');
-
-    //import axios from 'axios';
-    //import "tailwindcss/tailwind.css";
     Vue.component('modal', {
       template: '#modal-template',
     });
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    todos: [],
-    showModal: false,
-    clicked: false,
-    editModal: false,
-  },
-  async mounted() {
-    const response = await fetch('/todo');
-    const todo = await response.json();
-    this.todos = todo;
-  },
-  methods: {
-    async addTodo() {
-      const response = await fetch('/todo', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: this.title,
-          description: this.description
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      const todo = await response.json();
+    var app = new Vue({
+      el: '#app',
+      data: {
+        todos: [],
+        showModal: false,
+        clicked: false,
+        editModal: false,
+      },
+      async mounted() {
+        const response = await fetch('/todo');
+        const todo = await response.json();
+        this.todos = todo;
+      },
+      methods: {
+        async addTodo() {
+          const response = await fetch('/todo', {
+            method: 'POST',
+            body: JSON.stringify({
+              title: this.title,
+              description: this.description
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          const todo = await response.json();
 
-      this.errors = [];
+          this.errors = [];
 
-      if (!this.title && !this.description) {
-        alert('Please fill all the fields');
-        // this.errors.push('Please fill all the fields');
-        //return;
-        if (!this.title) {
-          this.errors.push('Name required.');
-        }
-        if (!this.description) {
-          this.errors.push('Age required.');
-        }
-      }
-      else {
-        this.todos.push(todo);
-      }
-    },
-    async updateStatus(todo, id) {
-      //this.clicked = !this.clicked;
-      if (todo.completed == 1) {
-        todo.completed = 0;
-      }
-      else {
-        todo.completed = 1;
-      }
-      const response = await fetch('/todo/' + id, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          completed: todo.completed
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    },
-    // update todo method
+          if (!this.title && !this.description) {
+            alert('Please fill all the fields');
+            // this.errors.push('Please fill all the fields');
+            //return;
+            if (!this.title) {
+              this.errors.push('Name required.');
+            }
+            if (!this.description) {
+              this.errors.push('Age required.');
+            }
+          }
+          else {
+            this.todos.push(todo);
+          }
+        },
+        async updateStatus(todo, id) {
+          //this.clicked = !this.clicked;
+          if (todo.completed == 1) {
+            todo.completed = 0;
+          }
+          else {
+            todo.completed = 1;
+          }
+          const response = await fetch('/todo/' + id, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              completed: todo.completed
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        },
+        async deleteTodo(todo, id) {
+          const response = await fetch(`/todo/` + id, {
+            method: 'DELETE'
+          });
+          const index = this.todos.indexOf(todo);
+          this.todos.splice(index, 1);
+          return response;
+        },
+        editTodo(todo, id) {
+          this.editModal = true;
+          this.title = todo.title;
+          this.description = todo.description;
+          this.completed = todo.completed;
 
-    // async updateStatusTodo(todo, id) {
-    //   //var stats;
-    //   if (this.completed == 1) {
-    //     this.completed = 0;
-    //   } else {
-    //     this.completed = 1;
-    //   }
-    //   const response = await fetch('/todo/' + id, {
-    //     method: 'PATCH',
-    //     body: JSON.stringify({
-    //       title: this.title,
-    //       description: this.description,
-    //       completed: this.completed
-    //     }),
-    //   });
-    //   const todo = await response.json();
-    // },
-    async deleteTodo(todo, id) {
-      const response = await fetch(`/todo/` + id, {
-        method: 'DELETE'
-      });
-      const index = this.todos.indexOf(todo);
-      this.todos.splice(index, 1);
-      return response;
-    },
-    editTodo(todo, id) {
-      this.editModal = true;
-      this.title = todo.title;
-      this.description = todo.description;
-      this.completed = todo.completed;
-
-      // update method todo
-      this.updateTodo(todo, this.id );
-    },
-    async updateTodo(todo, id) {
-      const response = await fetch(`/todo/` + id, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          title: this.title,
-          description: this.description,
-          completed: this.completed
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      //const todo = await response.json();
-     this.todos.splice(this.todos.indexOf(todo), 1, todo);
-    }
-    // async editTodo(todo, id) {
-    //   showModal = true;
-    //   const response = await fetch(`/todo/` + id, {
-    //     method: 'PATCH',
-    //     body: JSON.stringify({
-    //       title: this.title,
-    //       description: this.description
-    //     }),
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     }
-    //   });
-    //   const todo = await response.json();
-    //   this.todos.push(todo);
-    // },
-    
-  }
-})
+          this.id = id;
+          // get document by id of upd
+          
+          //let x = document.getElementsById('update').length;
+          alert(id);
+          this.addClass(id);
+          // update method todo
+          //this.updateTodo(todo.id);
+        //this.updateTodo(todo.id);
+        },
+        addClass(id) {
+          // create new attribute to button element
+          document.getElementById('update').setAttribute('id', 'update' + id);
+          alert(id);
+          // document.getElementById('update').setAttribute('@click','updateTodo(' + id + ')');
+          // var btn = document.getElementById("update");
+          // var att = document.createAttribute("onclick");
+          // // att.value = "updateTodo(id)";
+          // att.value = "updateTodo(" + id + "); showModal = false; editModal = false";
+          // btn.setAttribute(att);
+        },
+        async updateTodo(id) {
+          // alert('update');
+          const response = await fetch(`/todo/` + id, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              title: this.title,
+              description: this.description,
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          const todo = await response.json();
+        //this.todos.splice(this.todos.indexOf(todo), 1, todo);
+        },
+      }
+    });
   </script>
 </html>
 
 <!-- UPCOMING TASK 
   1. redesign edit, delete button - done
-  2. create modal to edit task
-  3. create update status todo button
+  2. create modal to edit task - done
+  3. create update status todo button - done
+  4. update todo details -> try jquery to pass the id by creating new attrbiute to button
 -->
