@@ -64,10 +64,10 @@
             <!-- <input type="checkbox" class="" v-model="todo.completed" @click="updateStatusTodo(todo, todo.id)"> -->
 
             
-            <span class="material-icons my-auto pl-4 text-2xl text-green-400 cursor-pointer" @click="updateStatusTodo(todo, todo.id)" v-model="todo.completed" v-if="todo.completed == 1">
+            <span class="material-icons my-auto pl-4 text-2xl text-green-400 cursor-pointer" class="stats" @click="updateStatus(todo, todo.id)" v-model="todo.completed" v-if="todo.completed == 1">
               check_circle
             </span>
-            <span class="material-icons my-auto pl-4 text-2xl text-yellow-400 cursor-pointer" @click="updateStatusTodo(todo, todo.id)" v-model="todo.completed" v-else>
+            <span class="material-icons my-auto pl-4 text-2xl text-yellow-400 cursor-pointer" class="stats" @click="updateStatus(todo, todo.id)" v-model="todo.completed" v-else>
               check_circle
             </span>
             <h3 class="font-sans font-bold text-lg text-white p-4 text-left">
@@ -78,7 +78,10 @@
             {{ todo.description }}
           </p>
           <div class="flex justify-end my-2 gap-2">
-            <button class="bg-green-500 hover:bg-green-700 w-10 h-auto text-white font-bold rounded-md" @click="editTodo(todo, todo.id)">
+            <button class="bg-yellow-500 hover:bg-yellow-700 w-10 h-auto text-white font-bold rounded-md" @click="updateStatus(todo, todo.id)">
+              <i class="material-icons py-2">check</i>
+            </button>            
+            <button class="bg-green-500 hover:bg-green-700 w-10 h-auto text-white font-bold rounded-md" @click="editTodo(todo, todo.id); showModal = true;">
               <i class="material-icons py-2">edit</i>
             </button>            
             <button class="bg-red-500 hover:bg-red-700 w-10 h-auto text-white font-bold rounded-md" @click="deleteTodo(todo, todo.id)">
@@ -88,7 +91,7 @@
         </div>
       </div>
     </div>
-    <button id="show-modal" class="border-dashed border-2 border-blue-500 hover:bg-blue-800 rounded-md p-2 text-white w-1/3 font-bold text-lg my-4 inline-flex justify-center gap-4" @click="showModal = true">
+    <button id="show-modal" class="border-dashed border-2 border-blue-500 hover:bg-blue-800 rounded-md p-2 text-white w-1/3 font-bold text-lg my-4 inline-flex justify-center gap-4" @click="showModal = true; editModal = false">
       <span class="material-icons my-auto">
         add_circle_outline
       </span>
@@ -98,7 +101,10 @@
     </button>
     <!-- use the modal component, pass in the prop -->
     <modal v-if="showModal" @close="showModal = false">
-      <h3 slot="header" class="mx-auto font-bold text-2xl">Add Task</h3>
+      <!-- Show when in add new task mode -->
+      <h3 slot="header" class="mx-auto font-bold text-2xl" v-if="!editModal">Add Task</h3>
+      <!-- Show when in edit task mode -->
+      <h3 slot="header" class="mx-auto font-bold text-2xl" v-else>Edit Task</h3>
       <!-- Input new todo -->
       <div slot="body" class="input">
         <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="title" id="task" placeholder="What are you working on?">
@@ -106,7 +112,10 @@
       </div>
       <!-- modal footer -->
       <div slot="footer" class="flex flex-row-reverse gap-2">
-        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" @click="addTodo">Save</button>
+        <!-- Show when in add new task mode -->
+        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-if="!editModal" @click="addTodo">Save</button>
+        <!-- Show when in edit task mode -->
+        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-else @click="updateTodo(todo, todo.id)">Update</button>
         <button class="bg-white bg-opacity-20 border-2 hover:border-red-500 border-gray-200 py-2 px-4 text-gray-400 hover:text-red-500 font-bold w-20" @click="showModal = false">Cancel</button>
       </div>
     </modal>
@@ -126,6 +135,7 @@ var app = new Vue({
     todos: [],
     showModal: false,
     clicked: false,
+    editModal: false,
   },
   async mounted() {
     const response = await fetch('/todo');
@@ -163,25 +173,43 @@ var app = new Vue({
         this.todos.push(todo);
       }
     },
-    // update todo method
-
-    async updateStatusTodo(todo, id) {
-      var stats;
-      if (this.completed == 1) {
-        stats = 0;
-      } else {
-        stats = 1;
+    async updateStatus(todo, id) {
+      //this.clicked = !this.clicked;
+      if (todo.completed == 1) {
+        todo.completed = 0;
+      }
+      else {
+        todo.completed = 1;
       }
       const response = await fetch('/todo/' + id, {
         method: 'PATCH',
         body: JSON.stringify({
-          title: this.title,
-          description: this.description,
-          completed: stats
+          completed: todo.completed
         }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      const todo = await response.json();
     },
+    // update todo method
+
+    // async updateStatusTodo(todo, id) {
+    //   //var stats;
+    //   if (this.completed == 1) {
+    //     this.completed = 0;
+    //   } else {
+    //     this.completed = 1;
+    //   }
+    //   const response = await fetch('/todo/' + id, {
+    //     method: 'PATCH',
+    //     body: JSON.stringify({
+    //       title: this.title,
+    //       description: this.description,
+    //       completed: this.completed
+    //     }),
+    //   });
+    //   const todo = await response.json();
+    // },
     async deleteTodo(todo, id) {
       const response = await fetch(`/todo/` + id, {
         method: 'DELETE'
@@ -190,21 +218,45 @@ var app = new Vue({
       this.todos.splice(index, 1);
       return response;
     },
-    async editTodo(todo, id) {
-      showModal = true;
+    editTodo(todo, id) {
+      this.editModal = true;
+      this.title = todo.title;
+      this.description = todo.description;
+      this.completed = todo.completed;
+
+      // update method todo
+      this.updateTodo(todo, this.id );
+    },
+    async updateTodo(todo, id) {
       const response = await fetch(`/todo/` + id, {
         method: 'PATCH',
         body: JSON.stringify({
           title: this.title,
-          description: this.description
+          description: this.description,
+          completed: this.completed
         }),
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      const todo = await response.json();
-      this.todos.push(todo);
-    },
+      //const todo = await response.json();
+     this.todos.splice(this.todos.indexOf(todo), 1, todo);
+    }
+    // async editTodo(todo, id) {
+    //   showModal = true;
+    //   const response = await fetch(`/todo/` + id, {
+    //     method: 'PATCH',
+    //     body: JSON.stringify({
+    //       title: this.title,
+    //       description: this.description
+    //     }),
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     }
+    //   });
+    //   const todo = await response.json();
+    //   this.todos.push(todo);
+    // },
     
   }
 })
