@@ -5,6 +5,9 @@ var TodoContollrer = require('../controllers/todo');
 // Get all todos
 router.get('/', TodoContollrer.getAllTodo);
 
+// get todo by id
+router.get('/:id', TodoContollrer.getTodoById);
+
 // Post todo
 router.post('/', TodoContollrer.postTodo);
 

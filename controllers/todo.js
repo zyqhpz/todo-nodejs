@@ -11,6 +11,20 @@ const todo = {
         }
         res.json(todo)
     },
+    getTodoById: async (req, res) => {
+        let todo = []
+
+        try {
+            todo = await Model.Todo.findOne({
+                where: {
+                    id: req.params.id
+                }
+            })
+        } catch (error) {
+            console.log(error)
+        }
+        res.json(todo)
+    },
     postTodo: async (req, res) => {
         let todo = {}
         try {

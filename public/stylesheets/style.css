@@ -76,3 +76,18 @@ a {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
+
+.status-done {
+  color: #42b983;
+  /* background-color: white; */
+  /* width: 200px; */
+  /* height: 200px;   */
+
+}
+.status-pending {
+  /* width: 200px; */
+  /* height: 200px; */
+  color: #ffc107;
+  /* background-color: blue; */
+
+}
