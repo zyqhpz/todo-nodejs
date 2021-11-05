@@ -41,21 +41,6 @@
     <h1 class="text-2xl font-bold text-white my-8 underline"><%= title %></h1>
   </body>
   <div id="app" class="w-full mt-8 mx-auto">
-    <!-- Input new todo -->
-    <!-- <div class="input">
-      <input class="py-2 px-4 my-2 rounded-md w-1/3" type="text" v-model="title" placeholder="Add new todo">
-      <br>
-      <input class="py-2 px-4 my-2 rounded-md w-1/3" type="text" v-model="description" placeholder="Add a description">
-      <br>
-      <button class="bg-green-500 hover:bg-purple-700 py-2 px-4 text-white font-bold" @click="addTodo">Add</button> -->
-
-      <!-- <p v-if="errors.length">
-        <b>Please correct the following error(s):</b>
-        <ul>
-          <li v-for="error in errors">{{ error }}</li>
-        </ul>
-      </p> -->
-    <!-- </div> -->
     <!-- todo list -->
     <div class="my-2">
       <div class="group border-gray-300 border-2 w-1/3 my-2 p-2 bg-indigo-600 bg-opacity-10 mx-auto" v-for="todo in todos" :key="todo.id">
@@ -86,7 +71,7 @@
         </div>
       </div>
     </div>
-    <button id="show-modal" class="border-dashed border-2 border-blue-500 hover:bg-blue-800 rounded-md p-2 text-white w-1/3 font-bold text-lg my-4 inline-flex justify-center gap-4" @click="showModal = true; editModal = false">
+    <button id="show-modal" class="border-dashed border-2 border-blue-500 hover:bg-blue-800 rounded-md p-2 text-white w-1/3 font-bold text-lg my-4 inline-flex justify-center gap-4" @click="addModal">
       <span class="material-icons my-auto">
         add_circle_outline
       </span>
@@ -102,18 +87,23 @@
       <h3 slot="header" class="mx-auto font-bold text-2xl" v-else>Edit Task</h3>
       <!-- Input new todo -->
       <div slot="body" class="input">
-        <!-- hidden input -->
-        <input type="hidden" v-model="id">
+        <div class="text-red-500" v-if="errors.length > 0">
+          <b>Please correct the following error(s):</b>
+          <ul>
+            <li v-for="error in errors">{{ error }}</li>
+          </ul>
+        </div >
+        <div v-else></div>
         <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="title" placeholder="What are you working on?">
         <input class="py-2 px-4 my-2 rounded-md w-full border-2 border-gray-400 shadow-sm" type="text" v-model="description" placeholder="Add note">
       </div>
       <!-- modal footer -->
       <div slot="footer" class="flex flex-row-reverse gap-2">
         <!-- Show when in add new task mode -->
-        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-if="!editModal" @click="addTodo;">Save</button>
+        <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" v-if="!editModal" @click="addTodo">Save</button>
         <!-- Show when in edit task mode -->
         <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 text-white font-bold w-20" id="update" v-else @click="updateTodo(id)">Update</button>
-        <button class="bg-white bg-opacity-20 border-2 hover:border-red-500 border-gray-200 py-2 px-4 text-gray-400 hover:text-red-500 font-bold w-20" @click="showModal = false">Cancel</button>
+        <button class="bg-white bg-opacity-20 border-2 hover:border-red-500 border-gray-200 py-2 px-4 text-gray-400 hover:text-red-500 font-bold w-20" @click="showModal = false; editModal = false">Cancel</button>
       </div>
     </modal>
   </div>
@@ -126,9 +116,13 @@
       el: '#app',
       data: {
         todos: [],
+        errors: [],
         showModal: false,
         editModal: false,
+        title: null,
+        description: null,
       },
+      
       async mounted() {
         const response = await fetch('/todo');
         const todo = await response.json();
@@ -136,32 +130,28 @@
       },
       methods: {
         async addTodo() {
-          const response = await fetch('/todo', {
-            method: 'POST',
-            body: JSON.stringify({
-              title: this.title,
-              description: this.description
-            }),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          const todo = await response.json();
-
           this.errors = [];
-
-          if (!this.title && !this.description) {
-            alert('Please fill all the fields');
-            // this.errors.push('Please fill all the fields');
-            //return;
-            if (!this.title) {
-              this.errors.push('Name required.');
+          if (this.title == '' || this.description == '') {
+            if (this.title == '') {
+              this.errors.push('Title is required.');
             }
-            if (!this.description) {
-              this.errors.push('Age required.');
+            if (this.description == '') {
+              this.errors.push('Note is required.');
             }
+            return false;
           }
           else {
+            const response = await fetch('/todo', {
+              method: 'POST',
+              body: JSON.stringify({
+                title: this.title,
+                description: this.description
+              }),
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            const todo = await response.json();
             this.todos.push(todo);
             this.showModal = false;
           }
@@ -195,11 +185,9 @@
           this.editModal = true;
           this.title = todo.title;
           this.description = todo.description;
-          this.completed = todo.completed;
           this.id = id;
         },
         async updateTodo(id) {
-          // alert('update');
           const response = await fetch(`/todo/` + id, {
             method: 'PATCH',
             body: JSON.stringify({
@@ -219,7 +207,17 @@
           const response = await fetch('/todo');
           const todo = await response.json();
           this.todos = todo;
-      },
+        },
+        addModal() {
+          this.description = '';
+          this.title = '';
+          this.showModal = true;
+          this.editModal = false;
+        },
+        resetInstances() {
+          this.title = '';
+          this.description = '';
+        },
       }
     });
   </script>
