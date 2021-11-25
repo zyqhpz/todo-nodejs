@@ -8,7 +8,7 @@
 
 ### Install dependencies
 ```
-npm run start
+npm install
 ```
 
 ### Compile and run
