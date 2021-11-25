@@ -4,5 +4,14 @@
 ## Add task
 ![addtask](https://github.com/zyqhpz/todo-nodejs/blob/master/img/addtask.PNG)
 
-## Run
-> npm run start
+## Project setup
+
+### Install dependencies
+```
+npm run start
+```
+
+### Compile and run
+```
+npm run start
+```
